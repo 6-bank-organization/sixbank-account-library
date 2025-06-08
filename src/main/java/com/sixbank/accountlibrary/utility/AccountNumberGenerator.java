@@ -1,5 +1,7 @@
 package com.sixbank.accountlibrary.utility;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.security.SecureRandom;
 
 /**
@@ -34,7 +36,8 @@ import java.security.SecureRandom;
  */
 public final class AccountNumberGenerator {
 
-    private static final String PREFIX = "SIX";
+    @Value("${six_bank.account.prefix:SIX}")
+    private String prefix;
     private static final int RANDOM_LENGTH = 10;
     private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -48,8 +51,8 @@ public final class AccountNumberGenerator {
      *
      * @return a newly generated account number, e.g., {@code SIX9G7L2B5Q1W}
      */
-    public static String generateAccountNumber() {
-        StringBuilder sb = new StringBuilder(PREFIX);
+    public  String generateAccountNumber() {
+        StringBuilder sb = new StringBuilder(prefix);
         for (int i = 0; i < RANDOM_LENGTH; i++) {
             int index = RANDOM.nextInt(CHAR_POOL.length());
             sb.append(CHAR_POOL.charAt(index));
@@ -84,12 +87,12 @@ public final class AccountNumberGenerator {
      * @param accountNumber the account number to validate
      * @return true if valid, false otherwise
      */
-    public static boolean isValidAccountNumber(String accountNumber) {
-        if (accountNumber == null || accountNumber.length() != PREFIX.length() + RANDOM_LENGTH) {
+    public  boolean isValidAccountNumber(String accountNumber) {
+        if (accountNumber == null || accountNumber.length() != prefix.length() + RANDOM_LENGTH) {
             return false;
         }
-        return accountNumber.startsWith(PREFIX)
-                && accountNumber.substring(PREFIX.length()).matches("^[A-Z0-9]{" + RANDOM_LENGTH + "}$");
+        return accountNumber.startsWith(prefix)
+                && accountNumber.substring(prefix.length()).matches("^[A-Z0-9]{" + RANDOM_LENGTH + "}$");
     }
 }
 

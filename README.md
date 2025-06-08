@@ -1,6 +1,6 @@
 # sixbank-account-library
 
-**Version:** `0.0.1-SNAPSHOT`  
+**Version:** `0.0.2-SNAPSHOT`  
 **Java Package:** `com.sixbank.accountlibrary`  
 **License:** MIT  
 **Author:** SIX Bank Engineering Team
@@ -45,6 +45,8 @@ com.sixbank.accountlibrary
 
 ````
 
+---
+
 ## 🚀 Usage
 
 You can import this library as a dependency in your microservices:
@@ -53,7 +55,7 @@ You can import this library as a dependency in your microservices:
 <summary>Gradle</summary>
 
 ```groovy
-implementation 'com.sixbank:sixbank-account-library:0.0.1-SNAPSHOT'
+implementation 'com.sixbank:sixbank-account-library:0.0.2-SNAPSHOT'
 ````
 
 </details>
@@ -65,11 +67,40 @@ implementation 'com.sixbank:sixbank-account-library:0.0.1-SNAPSHOT'
 <dependency>
     <groupId>com.sixbank</groupId>
     <artifactId>sixbank-account-library</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
 </dependency>
 ```
 
 </details>
+
+---
+
+## ⚙️ Configuring Account Number Prefix
+
+The library supports a configurable prefix for generated account numbers. You can override the default prefix (`SIX`) by specifying it in your application configuration file:
+
+### `application.yaml`:
+
+```yaml
+six_bank:
+  account:
+    prefix: SIX
+```
+
+### `application.properties`:
+
+```properties
+six_bank.account.prefix=CBA
+```
+
+In your Spring Boot application, ensure that your account number generator class is annotated with `@Component` or managed by Spring so that the value is injected correctly:
+
+```java
+@Value("${six_bank.account.prefix:SIX}")
+private String prefix;
+```
+
+If the property is not set, the default prefix `"SIX"` will be used.
 
 ---
 
