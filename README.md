@@ -1,6 +1,6 @@
 # sixbank-account-library
 
-**Version:** `0.0.3`  
+**Version:** `0.0.3-SNAPSHOT`  
 **Java Package:** `com.sixbank.accountlibrary`  
 **License:** MIT  
 **Author:** SIX Bank Engineering Team
@@ -71,7 +71,7 @@ implementation 'com.sixbank:sixbank-account-library:0.0.3'
 <dependency>
     <groupId>com.sixbank</groupId>
     <artifactId>sixbank-account-library</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.3-SNAPSHOT</version>
 </dependency>
 ```
 
