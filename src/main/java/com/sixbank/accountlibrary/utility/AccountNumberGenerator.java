@@ -80,7 +80,7 @@ import java.security.SecureRandom;
  * }
  * }</pre>
  *
- * @author SixBank
+ * @author SIX Bank Engineering Team
  * @since 0.0.3
  */
 public final class AccountNumberGenerator {
