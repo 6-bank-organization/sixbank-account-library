@@ -5,12 +5,12 @@ import java.security.SecureRandom;
 /**
  * Utility class for generating and managing account numbers for customer or internal accounts.
  * <p>
- * Account numbers follow the format: {@code PREFIXxxxxxxxxxx}, where:
+ * Account numbers follow the format: {@code PREFIX##########}, where:
  * <ul>
  *   <li>{@code PREFIX} is a system-defined prefix (e.g., "SIX")</li>
- *   <li>{@code xxxxxxxxxx} is a 10-character uppercase alphanumeric string</li>
+ *   <li>{@code ##########} is a 10-digit numeric string</li>
  * </ul>
- * Example: {@code SIXD29KF83LQ}
+ * Example: {@code SIX0532013000}
  *
  * <p>
  * Features:
@@ -18,15 +18,18 @@ import java.security.SecureRandom;
  *   <li>Secure random generation using {@link SecureRandom}</li>
  *   <li>Simple validation of account number format</li>
  *   <li>Support for masking account numbers in logs or UIs</li>
+ *   <li>Method to extract numeric part for IBAN generation</li>
  * </ul>
  *
  * <p><b>Usage Example:</b></p>
  * <pre>{@code
- * // Prefix from your application configuration (e.g., application.yml)
  * String prefix = "SIX";
  *
- * // Generate a new account number
+ * // Generate a new numeric account number
  * String accountNumber = AccountNumberGenerator.generateAccountNumber(prefix);
+ *
+ * // Extract the numeric part for IBAN
+ * String numericPart = AccountNumberGenerator.extractNumericPart(accountNumber, prefix);
  *
  * // Mask the account number for display
  * String masked = AccountNumberGenerator.maskAccountNumber(accountNumber);
@@ -35,58 +38,12 @@ import java.security.SecureRandom;
  * boolean isValid = AccountNumberGenerator.isValidAccountNumber(accountNumber, prefix);
  * }</pre>
  *
- * <p><b>Spring Boot Integration:</b></p>
- * <p>
- * To use the generator with a value defined in your application YAML file:
- * </p>
- * <pre>{@code
- * // application.yml
- * sixbank:
- *   account:
- *     prefix: SIX
- * }</pre>
- *
- * Then create a configuration class in your application:
- * <pre>{@code
- * @Component
- * @ConfigurationProperties(prefix = "sixbank.account")
- * public class AccountProperties {
- *     private String prefix;
- *
- *     public String getPrefix() {
- *         return prefix;
- *     }
- *
- *     public void setPrefix(String prefix) {
- *         this.prefix = prefix;
- *     }
- * }
- * }</pre>
- *
- * And inject it where needed:
- * <pre>{@code
- * @Service
- * public class MyService {
- *     private final AccountProperties properties;
- *
- *     public MyService(AccountProperties properties) {
- *         this.properties = properties;
- *     }
- *
- *     public void createAccount() {
- *         String accountNumber = AccountNumberGenerator.generateAccountNumber(properties.getPrefix());
- *         // ...
- *     }
- * }
- * }</pre>
- *
  * @author SIX Bank Engineering Team
- * @since 0.0.3-SNAPSHOT
+ * @since 0.0.4-SNAPSHOT
  */
 public final class AccountNumberGenerator {
 
     private static final int RANDOM_LENGTH = 10;
-    private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private AccountNumberGenerator() {
@@ -94,23 +51,36 @@ public final class AccountNumberGenerator {
     }
 
     /**
-     * Generates a new account number using the given prefix.
+     * Generates a new account number using the given prefix and 10-digit numeric body.
      *
      * @param prefix the system-defined account number prefix
-     * @return a newly generated account number, e.g., {@code SIX9G7L2B5Q1W}
+     * @return a newly generated account number, e.g., {@code SIX1234567890}
      */
     public static String generateAccountNumber(String prefix) {
         StringBuilder sb = new StringBuilder(prefix);
         for (int i = 0; i < RANDOM_LENGTH; i++) {
-            int index = RANDOM.nextInt(CHAR_POOL.length());
-            sb.append(CHAR_POOL.charAt(index));
+            sb.append(RANDOM.nextInt(10)); // 0-9 only
         }
         return sb.toString();
     }
 
     /**
+     * Extracts the numeric part of the account number (after the prefix).
+     *
+     * @param accountNumber the full account number, e.g., {@code SIX1234567890}
+     * @param prefix the prefix used in generation
+     * @return the 10-digit numeric part, or null if invalid
+     */
+    public static String extractNumericPart(String accountNumber, String prefix) {
+        if (isValidAccountNumber(accountNumber, prefix)) {
+            return accountNumber.substring(prefix.length());
+        }
+        return null;
+    }
+
+    /**
      * Returns a masked version of the given account number, showing only the last 4 characters.
-     * Example: {@code SIX******Q1W}
+     * Example: {@code SIX******7890}
      *
      * @param accountNumber the full account number
      * @return masked account number, or original input if format is invalid or too short
@@ -141,6 +111,6 @@ public final class AccountNumberGenerator {
             return false;
         }
         return accountNumber.startsWith(prefix)
-                && accountNumber.substring(prefix.length()).matches("^[A-Z0-9]{" + RANDOM_LENGTH + "}$");
+                && accountNumber.substring(prefix.length()).matches("^\\d{" + RANDOM_LENGTH + "}$");
     }
 }
