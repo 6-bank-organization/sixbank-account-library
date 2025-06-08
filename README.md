@@ -1,6 +1,6 @@
 # sixbank-account-library
 
-**Version:** `0.0.2-SNAPSHOT`  
+**Version:** `0.0.3`  
 **Java Package:** `com.sixbank.accountlibrary`  
 **License:** MIT  
 **Author:** SIX Bank Engineering Team
@@ -9,9 +9,9 @@
 
 ## 🏦 Overview
 
-The `sixbank-account-library` is a core Java library designed to provide **standardized domain models, enums, and events** for the Account Microservice within the **SIX Bank Platform**. This library enables consistent representation of account-related concepts across distributed services in the banking ecosystem.
+The `sixbank-account-library` is a core Java library designed to provide **standardized domain models, enums, events**, and **utility helpers** for the Account Microservice within the **SIX Bank Platform**. This library enables consistent representation of account-related concepts across distributed services in the banking ecosystem.
 
-It promotes reusability, event-driven architecture, and domain consistency across multiple services such as account management, ledger, notifications, and customer services.
+It promotes reusability, event-driven architecture, domain consistency, and standardized utility logic across services such as account management, ledger, notifications, and customer services.
 
 ---
 
@@ -19,6 +19,7 @@ It promotes reusability, event-driven architecture, and domain consistency acros
 
 - ✅ Centralized account-related enums (status, type, holder, limit).
 - ✅ Standardized domain events for Kafka or messaging layers.
+- ✅ Utility class for account number generation and masking.
 - ✅ Built-in metadata for traceability (`eventId`, `createdAt`).
 - ✅ Lightweight and suitable for modular microservice deployments.
 - ✅ Extensible for future account-related actions or statuses.
@@ -37,11 +38,14 @@ com.sixbank.accountlibrary
 │   ├── HolderType.java
 │   └── LimitType.java
 │
-└── events
-├── BaseEvent.java
-├── AccountCreatedEvent.java
-├── AccountStatusChangedEvent.java
-└── AccountBalanceUpdatedEvent.java
+├── events
+│   ├── BaseEvent.java
+│   ├── AccountCreatedEvent.java
+│   ├── AccountStatusChangedEvent.java
+│   └── AccountBalanceUpdatedEvent.java
+│
+└── utility
+└── AccountNumberGenerator.java
 
 ````
 
@@ -55,7 +59,7 @@ You can import this library as a dependency in your microservices:
 <summary>Gradle</summary>
 
 ```groovy
-implementation 'com.sixbank:sixbank-account-library:0.0.2-SNAPSHOT'
+implementation 'com.sixbank:sixbank-account-library:0.0.3'
 ````
 
 </details>
@@ -67,7 +71,7 @@ implementation 'com.sixbank:sixbank-account-library:0.0.2-SNAPSHOT'
 <dependency>
     <groupId>com.sixbank</groupId>
     <artifactId>sixbank-account-library</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
@@ -77,30 +81,63 @@ implementation 'com.sixbank:sixbank-account-library:0.0.2-SNAPSHOT'
 
 ## ⚙️ Configuring Account Number Prefix
 
-The library supports a configurable prefix for generated account numbers. You can override the default prefix (`SIX`) by specifying it in your application configuration file:
+The library includes a `AccountNumberGenerator` utility that generates account numbers using a configurable prefix.
 
-### `application.yaml`:
+### Option 1: `application.yaml`
 
 ```yaml
-six_bank:
+sixbank:
   account:
     prefix: SIX
 ```
 
-### `application.properties`:
+### Option 2: `application.properties`
 
 ```properties
-six_bank.account.prefix=CBA
+sixbank.account.prefix=SIX
 ```
 
-In your Spring Boot application, ensure that your account number generator class is annotated with `@Component` or managed by Spring so that the value is injected correctly:
+### Create a Configuration Class
 
 ```java
-@Value("${six_bank.account.prefix:SIX}")
-private String prefix;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix = "sixbank.account")
+public class AccountProperties {
+    private String prefix;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+}
 ```
 
-If the property is not set, the default prefix `"SIX"` will be used.
+### Inject and Use in Service
+
+```java
+@Service
+public class AccountService {
+
+    private final AccountProperties properties;
+
+    public AccountService(AccountProperties properties) {
+        this.properties = properties;
+    }
+
+    public void createAccount() {
+        String accountNumber = AccountNumberGenerator.generateAccountNumber(properties.getPrefix());
+        // Use account number as needed
+    }
+}
+```
+
+> ✅ If the prefix is not set, the generator defaults to `"SIX"`.
 
 ---
 
@@ -108,22 +145,22 @@ If the property is not set, the default prefix `"SIX"` will be used.
 
 * All services using account events should subscribe to changes via Kafka or a message broker.
 * Extend the event model to support versioning (`v1`, `v2`, etc.) if the schema evolves.
-* Avoid including business logic in this library — keep it lightweight and focused on model definitions.
+* Avoid including business logic in this library — keep it lightweight and focused on models and shared utilities.
 
 ---
 
 ## 🧪 Testing
 
-This library is designed to be used in microservices, so unit testing should be performed at the service level using mocked events and enums.
+This library is intended to be used within microservices. Unit and integration testing should be performed at the service level using mocks for domain models, enums, and events.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See `LICENSE` for more details.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ---
 
 ## 💬 Contact
 
-For internal contributions or improvements, please contact the **SIX Bank Engineering Team**.
+For internal contributions, issues, or improvements, please reach out to the **SIX Bank Engineering Team**.
